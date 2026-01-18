@@ -10,16 +10,18 @@ export interface NodeProperty {
     label: string,
     parentNode?: NodeProperty,
     childNodes: NodeProperty[],
+    connector?: LineProperty,
     offsetFromParent: number[]
 }
 
 // For line connecting two nodes
 export interface LineProperty {
-    position?: Vec3,
-    rotation?: Vec3,
-    length?: number,
-    radius?: number,
-    segments?: [number, number]
+    id: number,
+    position: Vec3,
+    rotation: Vec3,
+    length: number,
+    radius: number,
+    segments: [number, number]
 }
 
 // for company infos like name, revenues, Expenses etc

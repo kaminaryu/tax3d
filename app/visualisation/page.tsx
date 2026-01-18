@@ -5,8 +5,9 @@ import { OrbitControls, DragControls, Text, Billboard } from "@react-three/drei"
 import { useState } from 'react'; // for manipulating what exist in the scene
 
 import { Node, Line } from "./components/objects";
-import { CompanyProperty } from "./types/graph";
+import { CompanyProperty } from "./types/graphTypes";
 import { graphHandler } from "./hooks/graphHandler";
+import { Connector, GraphNode } from "./components/graphNodes";
 
 
 
@@ -20,8 +21,11 @@ export default function Visualisation() {
     const {
         rootNodesProperties,
         leafNodesProperties,
-        lines,
         leafNodePosRefs,
+        leafConnectorProperties,
+        leafConnectorPosRefs,
+        updateConnector,
+        lines,
         spawnGraph,
         updateChildNodes,
         drawLine
@@ -77,49 +81,38 @@ export default function Visualisation() {
                 {/* </DragControls> */}
 
                 {/* the sphere properties will be mapped to the canvas (generator) */}
-                { rootNodesProperties.map((nodeProperties, id) => (
-                        <DragControls
-                            key={id}
-                            onDragStart={() => setDragging((true))}
-                            onDragEnd={() => setDragging((false))}
-                            onDrag={(matrix) => {
-                                updateChildNodes(matrix, nodeProperties);
-                            }}
-                        >
-                            <group position={nodeProperties.position}>
-                                <Node {...nodeProperties} />
-                                <Billboard>
-                                    <Text position={[0, 3.5, 0]} fontSize={2} anchorX="center" anchorY="middle">
-                                        {nodeProperties.label}
-                                    </Text>
-                                </Billboard>
+                {/* Render Root Nodes */}
+                {rootNodesProperties.map((node) => (
+                    <GraphNode 
+                        key={node.id} 
+                        node={node} 
+                        onDrag={(matrix) => {
+                            updateChildNodes(matrix, node);
+                            // updateChildConnector(matrix, node);
+                        }}
+                        setDragging={setDragging}
+                    />
+                ))}
 
-                            </group>
-                        </DragControls>
-                    ))
-                }
+                {/* Render Leaf Nodes */}
+                {leafNodesProperties.map((node) => (
+                    <GraphNode 
+                        key={node.id} 
+                        node={node} 
+                        isLeaf={true}
+                        onDrag={(matrix) => updateConnector(matrix, node)}
+                        nodeRef={(el) => (leafNodePosRefs.current[node.id] = el)}
+                        setDragging={setDragging}
+                    />
+                ))}
 
-                { leafNodesProperties.map( (nodeProperties, id) => (
-                    <DragControls
-                        key={id}
-                        onDragStart={() => setDragging((true))}
-                        onDragEnd={() => setDragging((false))}
-                        // onDrag={(matrix) => updateChildNodes(matrix, nodeProperties)}
-                    >
-                        <mesh position={nodeProperties.position} ref={(elem) => (leafNodePosRefs.current[nodeProperties.id] = elem)}>
-                            <mesh onPointerEnter={() => setDragging(true)} onPointerLeave={() => setDragging(false)}>
-                                <sphereGeometry args={nodeProperties.geometry} />
-                                <meshStandardMaterial color="#543958" />
-                            </mesh>
-                            <Billboard>
-                                <Text position={[0, 3.5, 0]} fontSize={2} anchorX="center" anchorY="middle">
-                                    {nodeProperties.label}
-                                </Text>
-                            </Billboard>
-                        </mesh>
-                    </DragControls>
-                    ))
-                }
+                { leafConnectorProperties.map( (line) => (
+                    <Connector
+                        key={line.id}
+                        line={line}
+                        lineRef={(el) => (leafConnectorPosRefs.current[line.id] = el)}
+                    />
+                ))}
 
                 { lines.map( (lineProp, i) => (
                         <DragControls key={i} onDragStart={() => setDragging((true))} onDragEnd={() => setDragging((false))}>
@@ -133,11 +126,3 @@ export default function Visualisation() {
         </div>
     );
 }
-
-
-// NOTE: 
-// useState is used for manipulating the scene
-// syntax :
-// const [state, updateState] = useState<type>(initialValue)
-// state => the current state
-// updateItem => function that will be used to update the state

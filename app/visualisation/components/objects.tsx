@@ -1,6 +1,6 @@
 import {useState} from 'react';
 
-import { NodeProperty, LineProperty } from "../types/graph";
+import { NodeProperty, LineProperty } from "../types/graphTypes";
 
 
 export function Node({position = [0, 0, 0], geometry = [5, 32, 32]}: NodeProperty) {
@@ -21,7 +21,7 @@ export function Node({position = [0, 0, 0], geometry = [5, 32, 32]}: NodePropert
 export function Line(property: LineProperty) {
     return (
         <mesh
-            position = {property.position}
+            // position = {property.position}
             rotation = {property.rotation}
         >
             <cylinderGeometry args={[property.radius, property.radius, property.length, 32]} />
